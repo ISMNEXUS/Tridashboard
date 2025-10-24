@@ -1,0 +1,2 @@
+# Tridashboard
+dasboard de plataforma
