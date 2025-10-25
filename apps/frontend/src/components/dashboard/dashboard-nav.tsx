@@ -47,13 +47,16 @@ const navigation = [
     ],
   },
   {
-    name: 'Administración',
-    icon: Settings,
+    name: 'Admin Academia',
+    icon: GraduationCap,
     children: [
+      { name: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard },
       { name: 'Usuarios', href: '/dashboard/admin/users', icon: UserCircle },
       { name: 'Roles', href: '/dashboard/admin/roles', icon: Users },
       { name: 'Cursos', href: '/dashboard/admin/courses', icon: GraduationCap },
       { name: 'Horarios', href: '/dashboard/admin/schedules', icon: Calendar },
+      { name: 'Inscripciones', href: '/dashboard/admin/enrollments', icon: FileText },
+      { name: 'Config. Moodle DB', href: '/dashboard/admin/database-config', icon: Settings },
     ],
   },
   {

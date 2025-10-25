@@ -20,8 +20,8 @@ const modules = [
     bgColor: 'bg-green-50',
   },
   {
-    title: 'Administración',
-    description: 'Usuarios, Roles y Cursos',
+    title: 'Admin Academia',
+    description: 'Usuarios, Roles, Cursos y Moodle',
     icon: Settings,
     href: '/dashboard/admin',
     color: 'text-purple-600',

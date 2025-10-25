@@ -8,10 +8,14 @@ const authOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt' as const,
+    maxAge: 15 * 60, // 15 minutes
   },
   pages: {
     signIn: '/login',
+    error: '/login',
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -65,7 +69,7 @@ const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user, trigger }: any) {
       if (user) {
         token.id = user.id;
         token.roles = user.roles;
@@ -78,6 +82,16 @@ const authOptions = {
         session.user.roles = token.roles;
       }
       return session;
+    },
+    async authorized({ auth, request }: any) {
+      const isLoggedIn = !!auth?.user;
+      const isOnDashboard = request.nextUrl?.pathname.startsWith('/dashboard');
+      
+      if (isOnDashboard && !isLoggedIn) {
+        return false; // Redirect to login page
+      }
+      
+      return true;
     },
   },
 };

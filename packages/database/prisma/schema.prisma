@@ -555,3 +555,35 @@ model Task {
   @@index([status])
   @@map("tasks")
 }
+
+  // ============================================
+  // MOODLE CONNECTIONS
+  // ============================================
+
+  enum ConnectionStatus {
+    ACTIVE
+    INACTIVE
+    ERROR
+    TESTING
+  }
+
+  model MoodleConnection {
+    id          String           @id @default(cuid())
+    name        String // Nombre descriptivo de la conexión
+    host        String // IP o hostname del servidor
+    port        Int              @default(3306)
+    database    String // Nombre de la base de datos
+    username    String // Usuario de la base de datos
+    password    String // Contraseña encriptada
+    userId      String? // Usuario que creó/gestiona esta conexión
+    status      ConnectionStatus @default(INACTIVE)
+    lastSync    DateTime? // Última sincronización exitosa
+    lastError   String?          @db.Text // Último error de conexión
+    isActive    Boolean          @default(true)
+    createdAt   DateTime         @default(now())
+    updatedAt   DateTime         @updatedAt
+
+    @@index([status])
+    @@index([userId])
+    @@map("moodle_connections")
+  }

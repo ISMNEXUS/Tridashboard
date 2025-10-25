@@ -44,7 +44,7 @@ export default function LoginPage() {
             </div>
             <div>
               <p className="font-semibold text-lg">Gestión Completa</p>
-              <p className="text-sm opacity-90">CRM, ERP y Administración</p>
+              <p className="text-sm opacity-90">CRM, ERP y Admin Academia</p>
             </div>
           </div>
           
