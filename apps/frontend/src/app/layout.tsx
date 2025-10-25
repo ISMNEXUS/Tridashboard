@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { IdleLogout } from '@/components/providers/idle-logout';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <AuthProvider>
+            <IdleLogout />
             {children}
             <Toaster />
           </AuthProvider>

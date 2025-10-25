@@ -3,6 +3,10 @@ import { DashboardCards } from '@/components/dashboard/dashboard-cards';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 export default async function DashboardPage() {
   const session = await auth();
 

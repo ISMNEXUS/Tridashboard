@@ -67,30 +67,36 @@ export function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-white">
-      <nav className="flex-1 space-y-1 p-4">
+    <aside className="hidden md:flex w-72 flex-col border-r border-border/40 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+      <nav className="flex-1 space-y-2 p-6">
         {navigation.map((item) => {
           if (item.children) {
             return (
-              <div key={item.name} className="space-y-1">
-                <div className="flex items-center px-3 py-2 text-sm font-medium text-gray-700">
-                  <item.icon className="mr-3 h-5 w-5" />
+              <div key={item.name} className="space-y-1 animate-slide-in">
+                  <div className="flex items-center px-4 py-3 text-xs font-semibold text-foreground/70 uppercase tracking-wider">
+                  <item.icon className="mr-3 h-4 w-4" />
                   {item.name}
                 </div>
-                <div className="ml-8 space-y-1">
+                <div className="ml-4 space-y-1">
                   {item.children.map((child) => (
                     <Link
                       key={child.href}
                       href={child.href}
                       className={cn(
-                        'flex items-center px-3 py-2 text-sm rounded-md transition-colors',
+                        'group flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-300 relative overflow-hidden',
                         pathname === child.href
-                          ? 'bg-blue-50 text-blue-600 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/30 font-medium'
+                          : 'text-foreground/70 hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:translate-x-1'
                       )}
                     >
-                      <child.icon className="mr-3 h-4 w-4" />
+                      <child.icon className={cn(
+                        "mr-3 h-4 w-4 transition-transform duration-300",
+                        pathname === child.href ? "" : "group-hover:scale-110"
+                      )} />
                       {child.name}
+                      {pathname === child.href && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 animate-pulse"></div>
+                      )}
                     </Link>
                   ))}
                 </div>
@@ -103,14 +109,20 @@ export function DashboardNav() {
               key={item.name}
               href={item.href!}
               className={cn(
-                'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                'group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 relative overflow-hidden animate-slide-in',
                 pathname === item.href
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/30'
+                  : 'text-foreground/70 hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:translate-x-1'
               )}
             >
-              <item.icon className="mr-3 h-5 w-5" />
+              <item.icon className={cn(
+                "mr-3 h-5 w-5 transition-transform duration-300",
+                pathname === item.href ? "" : "group-hover:scale-110 group-hover:rotate-3"
+              )} />
               {item.name}
+              {pathname === item.href && (
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 animate-pulse"></div>
+              )}
             </Link>
           );
         })}

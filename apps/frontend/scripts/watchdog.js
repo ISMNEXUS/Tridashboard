@@ -2,14 +2,14 @@
 /**
  * Watchdog de salud del servidor Next.js (puerto 3010)
  * - Revisa cada 10s si http://localhost:3010 responde 2xx/3xx
- * - Si falla durante 2 minutos (12 intentos consecutivos), reinicia el proceso PM2 "frontend"
+ * - Si falla durante 10 minutos (60 intentos consecutivos), reinicia el proceso PM2 "frontend"
  */
 
 const { exec } = require('node:child_process');
 const path = require('node:path');
 const TARGET_URL = process.env.WATCHDOG_URL || 'http://localhost:3010/';
 const INTERVAL_MS = 10_000; // 10 segundos
-const MAX_FAILS = 12; // 12 * 10s = 120s = 2 minutos
+const MAX_FAILS = 60; // 60 * 10s = 600s = 10 minutos
 let failStreak = 0;
 
 async function check() {
@@ -39,7 +39,7 @@ async function check() {
     console.error(`[watchdog] ${MAX_FAILS} fallos consecutivos. Reiniciando app "frontend" con PM2...`);
     const pm2Local = path.resolve(__dirname, '..', 'node_modules', '.bin', process.platform === 'win32' ? 'pm2.cmd' : 'pm2');
     const pm2Cmd = pm2Local;
-    exec(`"${pm2Cmd}" restart frontend`, (error, stdout, stderr) => {
+    exec(`"${pm2Cmd}" restart frontend || "${pm2Cmd}" start ${path.resolve(__dirname, '..', 'ecosystem.config.js')} --only frontend`, (error, stdout, stderr) => {
       if (error) {
         console.error(`[watchdog] Error al reiniciar con PM2: ${error.message}`);
       }
