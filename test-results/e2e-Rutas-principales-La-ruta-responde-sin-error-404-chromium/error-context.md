@@ -1,0 +1,47 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - heading "TRIANGLAIS" [level=1] [ref=e5]
+        - paragraph [ref=e6]: Sistema Integral para Academia de Idiomas
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e10]
+          - generic [ref=e12]:
+            - paragraph [ref=e13]: Gestión Completa
+            - paragraph [ref=e14]: CRM, ERP y Administración
+        - generic [ref=e15]:
+          - img [ref=e17]
+          - generic [ref=e19]:
+            - paragraph [ref=e20]: Interfaz Moderna
+            - paragraph [ref=e21]: Diseño intuitivo y responsive
+        - generic [ref=e22]:
+          - img [ref=e24]
+          - generic [ref=e26]:
+            - paragraph [ref=e27]: Alto Rendimiento
+            - paragraph [ref=e28]: Tecnología de última generación
+      - paragraph [ref=e29]: © 2025 TRIANGLAIS. Todos los derechos reservados.
+    - generic [ref=e32]:
+      - heading "Iniciar Sesión" [level=2] [ref=e33]
+      - paragraph [ref=e34]: Ingresa tus credenciales para acceder al sistema
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - text: Email
+          - textbox "Email" [ref=e37]:
+            - /placeholder: tu@email.com
+        - generic [ref=e38]:
+          - text: Contraseña
+          - textbox "Contraseña" [ref=e39]:
+            - /placeholder: ••••••••
+        - button "Iniciar Sesión" [ref=e40] [cursor=pointer]
+        - generic [ref=e41]:
+          - paragraph [ref=e42]: "Credenciales de prueba:"
+          - paragraph [ref=e43]:
+            - text: "Email: admin@trianglais.com"
+            - text: "Contraseña: admin123"
+  - region "Notifications (F8)":
+    - list
+```

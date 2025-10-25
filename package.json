@@ -1,0 +1,44 @@
+{
+  "name": "trianglais",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema Integral para Academia de Idiomas TRIANGLAIS",
+  "scripts": {
+    "dev": "bash ./scripts/dev.sh",
+    "dev:frontend": "PORT=3010 pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:restart": "bash ./scripts/dev-restart.sh",
+    "dev:clean": "pkill -f 'next dev' || true && pnpm dev:frontend",
+    "port:clean": "bash ./scripts/clean-ports.sh",
+    "build": "pnpm run --recursive build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:backend": "pnpm --filter backend build",
+    "start": "pnpm run --parallel start",
+    "lint": "pnpm run --recursive lint",
+    "clean": "pnpm run --recursive clean",
+    "clean:ports": "lsof -ti:3010,3001 | xargs kill -9 2>/dev/null || true",
+    "db:generate": "pnpm --filter database db:generate",
+    "db:push": "pnpm --filter database db:push",
+    "db:migrate": "pnpm --filter database db:migrate",
+    "db:studio": "pnpm --filter database db:studio",
+    "db:seed": "pnpm --filter database db:seed"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "keywords": [
+    "trianglais",
+    "academia",
+    "idiomas",
+    "crm",
+    "erp",
+    "education"
+  ],
+  "author": "ISMNEXUS",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "playwright": "^1.56.1"
+  }
+}

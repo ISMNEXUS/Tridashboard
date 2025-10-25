@@ -1,0 +1,557 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTENTICACIÓN Y USUARIOS
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  password      String
+  image         String?
+  phone         String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relaciones
+  accounts      Account[]
+  sessions      Session[]
+  roles         UserRole[]
+  createdLeads  Lead[]     @relation("CreatedBy")
+  assignedLeads Lead[]     @relation("AssignedTo")
+  activities    Activity[]
+  emails        Email[]
+  tasks         Task[]
+  sales         Sale[]
+  expenses      Expense[]
+  purchases     Purchase[]
+  invoices      Invoice[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================
+// ROLES Y PERMISOS
+// ============================================
+
+enum RoleType {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  SALES
+  TEACHER
+  STUDENT
+  SUPPORT
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        RoleType @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  module      String // CRM, ERP, ADMIN, CONFIG
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================
+// MÓDULO CRM
+// ============================================
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  CONVERTED
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  SOCIAL_MEDIA
+  PHONE_CALL
+  EMAIL
+  WALK_IN
+  ADVERTISEMENT
+  OTHER
+}
+
+model Lead {
+  id          String     @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String
+  phone       String?
+  status      LeadStatus @default(NEW)
+  source      LeadSource
+  notes       String?    @db.Text
+  score       Int?       @default(0)
+  createdById String
+  assignedToId String?
+  convertedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  createdBy  User       @relation("CreatedBy", fields: [createdById], references: [id])
+  assignedTo User?      @relation("AssignedTo", fields: [assignedToId], references: [id])
+  activities Activity[]
+  tags       LeadTag[]
+
+  @@index([status])
+  @@index([createdById])
+  @@index([assignedToId])
+  @@map("leads")
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String // CALL, EMAIL, MEETING, NOTE
+  description String   @db.Text
+  leadId      String?
+  userId      String
+  scheduledAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lead Lead? @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user User  @relation(fields: [userId], references: [id])
+
+  @@index([leadId])
+  @@index([userId])
+  @@map("activities")
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  color     String?
+  createdAt DateTime  @default(now())
+  leads     LeadTag[]
+
+  @@map("tags")
+}
+
+model LeadTag {
+  id        String   @id @default(cuid())
+  leadId    String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, tagId])
+  @@map("lead_tags")
+}
+
+// Sistema de Email
+model Email {
+  id          String    @id @default(cuid())
+  from        String
+  to          String[]
+  cc          String[]
+  bcc         String[]
+  subject     String
+  body        String    @db.Text
+  htmlBody    String?   @db.Text
+  isRead      Boolean   @default(false)
+  isSent      Boolean   @default(false)
+  userId      String
+  sentAt      DateTime?
+  receivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("emails")
+}
+
+// Sistema de Chat
+model ChatRoom {
+  id        String    @id @default(cuid())
+  name      String?
+  isGroup   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  messages      ChatMessage[]
+  participants  ChatParticipant[]
+
+  @@map("chat_rooms")
+}
+
+model ChatParticipant {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@map("chat_participants")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  senderId  String
+  content   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@map("chat_messages")
+}
+
+// ============================================
+// MÓDULO ERP
+// ============================================
+
+// Ventas
+enum SaleStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
+model Sale {
+  id          String     @id @default(cuid())
+  saleNumber  String     @unique
+  customerId  String?
+  userId      String
+  status      SaleStatus @default(DRAFT)
+  subtotal    Decimal    @db.Decimal(10, 2)
+  tax         Decimal    @db.Decimal(10, 2)
+  discount    Decimal    @db.Decimal(10, 2) @default(0)
+  total       Decimal    @db.Decimal(10, 2)
+  notes       String?    @db.Text
+  saleDate    DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user     User       @relation(fields: [userId], references: [id])
+  items    SaleItem[]
+  invoices Invoice[]
+
+  @@index([userId])
+  @@map("sales")
+}
+
+model SaleItem {
+  id          String  @id @default(cuid())
+  saleId      String
+  productName String
+  description String?
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@map("sale_items")
+}
+
+// Compras
+enum PurchaseStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  RECEIVED
+  CANCELLED
+}
+
+model Purchase {
+  id             String         @id @default(cuid())
+  purchaseNumber String         @unique
+  supplierId     String?
+  userId         String
+  status         PurchaseStatus @default(DRAFT)
+  subtotal       Decimal        @db.Decimal(10, 2)
+  tax            Decimal        @db.Decimal(10, 2)
+  total          Decimal        @db.Decimal(10, 2)
+  notes          String?        @db.Text
+  purchaseDate   DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user  User           @relation(fields: [userId], references: [id])
+  items PurchaseItem[]
+
+  @@index([userId])
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id          String  @id @default(cuid())
+  purchaseId  String
+  productName String
+  description String?
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_items")
+}
+
+// Gastos
+enum ExpenseCategory {
+  SALARIES
+  RENT
+  UTILITIES
+  SUPPLIES
+  MARKETING
+  TRAVEL
+  EQUIPMENT
+  MAINTENANCE
+  OTHER
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  description String
+  category    ExpenseCategory
+  amount      Decimal         @db.Decimal(10, 2)
+  userId      String
+  expenseDate DateTime        @default(now())
+  receiptUrl  String?
+  notes       String?         @db.Text
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([category])
+  @@map("expenses")
+}
+
+// Facturación
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  saleId        String?
+  userId        String
+  status        InvoiceStatus @default(DRAFT)
+  subtotal      Decimal       @db.Decimal(10, 2)
+  tax           Decimal       @db.Decimal(10, 2)
+  total         Decimal       @db.Decimal(10, 2)
+  dueDate       DateTime
+  paidAt        DateTime?
+  notes         String?       @db.Text
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  sale Sale? @relation(fields: [saleId], references: [id])
+  user User  @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("invoices")
+}
+
+// ============================================
+// MÓDULO ADMINISTRACIÓN
+// ============================================
+
+// Cursos y Plataformas de Aprendizaje
+model Course {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  level       String // A1, A2, B1, B2, C1, C2
+  duration    Int // en horas
+  price       Decimal  @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  enrollments Enrollment[]
+  schedules   Schedule[]
+
+  @@map("courses")
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  studentId  String
+  courseId   String
+  startDate  DateTime
+  endDate    DateTime?
+  status     String   @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  progress   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@index([studentId])
+  @@map("enrollments")
+}
+
+model Schedule {
+  id        String   @id @default(cuid())
+  courseId  String
+  teacherId String
+  dayOfWeek Int // 0-6 (Domingo-Sábado)
+  startTime String // "09:00"
+  endTime   String // "11:00"
+  classroom String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@map("schedules")
+}
+
+// ============================================
+// MÓDULO CONFIGURACIÓN
+// ============================================
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  category  String // GENERAL, CRM, ERP, ADMIN, EMAIL, NOTIFICATION
+  dataType  String   @default("string") // string, number, boolean, json
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@map("system_configs")
+}
+
+// Tareas
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  userId      String
+  status      String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("tasks")
+}
